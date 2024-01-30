@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
@@ -17,16 +18,21 @@ SECRET_JWT = os.environ.get('SECRET_JWT')
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            # Check the console or log for validation errors
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.data)
 
 # LOGIN USER
 
 
 class LoginView(APIView):
     def post(self, request):
+        print("Request received in LoginView")
         email = request.data['email']
         password = request.data['password']
 
@@ -68,6 +74,8 @@ class LoginView(APIView):
 class UserView(APIView):
     def get(self, request):
         token = request.COOKIES.get('jwt')
+
+        print("Token received:", token)
 
         # If there's NO token
         if not token:
