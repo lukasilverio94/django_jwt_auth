@@ -49,7 +49,7 @@ class LoginView(APIView):
         # After import jwt and datetime, set payload:
         payload = {
             'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=3),
             'iat': datetime.datetime.utcnow()
         }
 
@@ -59,7 +59,11 @@ class LoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=token,
+                            httponly=True, samesite=False, secure=True)
+
+        # Allow credentials in cross-origin requests
+        response["Access-Control-Allow-Credentials"] = "true"
 
         response.data = {
             'jwt': token
@@ -73,26 +77,40 @@ class LoginView(APIView):
 
 class UserView(APIView):
     def get(self, request):
-        token = request.COOKIES.get('jwt')
+        print("Entering UserView.get")
 
+        token = request.COOKIES.get('jwt')
         print("Token received:", token)
 
         # If there's NO token
         if not token:
+            print("No token found")
             raise AuthenticationFailed('Unauthenticated')
 
         try:
-            # Correct the argument to 'algorithms'
             payload = jwt.decode(token, SECRET_JWT, algorithms=['HS256'])
+            print("Decoded payload: ", payload)
         except jwt.ExpiredSignatureError:
+            print("Token expired")
+            raise AuthenticationFailed('Unauthenticated')
+        except jwt.InvalidTokenError:
+            print("Invalid token")
             raise AuthenticationFailed('Unauthenticated')
 
         # Get user
         user = User.objects.filter(id=payload['id']).first()
+        print("User found:", user)
+
+        if not user:
+            print("User not found")
+            raise AuthenticationFailed('User not found')
+
         # Serializer user
         serializer = UserSerializer(user)
+        print("Serialized data:", serializer.data)
 
         return Response(serializer.data)
+
 
 # LOGOUT
 
@@ -101,6 +119,8 @@ class LogoutView(APIView):
     def post(self, request):
         response = Response()
         response.delete_cookie('jwt')
+        # Allow credentials in cross-origin requests
+        response["Access-Control-Allow-Credentials"] = "true"
         response.data = {
             'message': 'Success logout'
         }

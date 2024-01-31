@@ -24,7 +24,8 @@ export const Login = () => {
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/api/login/",
-        formData
+        formData,
+        { withCredentials: true }
       );
       localStorage.setItem("jwt", response.data.jwt);
       navigate("/dashboard");

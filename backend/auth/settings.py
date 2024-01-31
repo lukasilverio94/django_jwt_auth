@@ -133,7 +133,7 @@ AUTH_USER_MODEL = 'users.User'
 
 #  CORS CONFIGS DEVELOP MODE
 # DONT SET ALLOW ALL TRUE FOR PRODUCTION
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # CORS PRODUCTION >>>
@@ -142,6 +142,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
 
 ]
+
+# COOKIES
+CSRF_COOKIE_HTTP_ONLY = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "None"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
