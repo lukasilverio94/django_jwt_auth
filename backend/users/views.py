@@ -60,7 +60,7 @@ class LoginView(APIView):
         response = Response()
 
         response.set_cookie(key='jwt', value=token,
-                            httponly=True, samesite=False, secure=True)
+                            httponly=True)
 
         # Allow credentials in cross-origin requests
         response["Access-Control-Allow-Credentials"] = "true"
@@ -76,39 +76,21 @@ class LoginView(APIView):
 
 
 class UserView(APIView):
+
     def get(self, request):
-        print("Entering UserView.get")
-
         token = request.COOKIES.get('jwt')
-        print("Token received:", token)
 
-        # If there's NO token
         if not token:
-            print("No token found")
-            raise AuthenticationFailed('Unauthenticated')
+            raise AuthenticationFailed('Unauthenticated!')
 
         try:
             payload = jwt.decode(token, SECRET_JWT, algorithms=['HS256'])
-            print("Decoded payload: ", payload)
         except jwt.ExpiredSignatureError:
-            print("Token expired")
-            raise AuthenticationFailed('Unauthenticated')
-        except jwt.InvalidTokenError:
-            print("Invalid token")
-            raise AuthenticationFailed('Unauthenticated')
+            raise AuthenticationFailed('Unauthenticated!')
 
-        # Get user
         user = User.objects.filter(id=payload['id']).first()
-        print("User found:", user)
-
-        if not user:
-            print("User not found")
-            raise AuthenticationFailed('User not found')
-
-        # Serializer user
+        print("User: ", user)
         serializer = UserSerializer(user)
-        print("Serialized data:", serializer.data)
-
         return Response(serializer.data)
 
 

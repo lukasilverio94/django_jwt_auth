@@ -27,6 +27,7 @@ export const Login = () => {
         formData,
         { withCredentials: true }
       );
+      setFormData(response.data);
       localStorage.setItem("jwt", response.data.jwt);
       navigate("/dashboard");
     } catch (error) {

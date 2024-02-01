@@ -136,9 +136,16 @@ AUTH_USER_MODEL = 'users.User'
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
+
 # CORS PRODUCTION >>>
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
     "http://localhost:5174",
 
 ]
@@ -154,6 +161,6 @@ SESSION_COOKIE_SAMESITE = "None"
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 STATIC_URL = 'static/'
 
-STATIC_DIRS = [
-    os.path.join(BASE_DIR, '../frontend/dist/static')
-]
+# STATIC_DIRS = [
+#     os.path.join(BASE_DIR, '../frontend/dist/static')
+# ]
