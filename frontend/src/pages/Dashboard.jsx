@@ -1,36 +1,32 @@
 // Dashboard.jsx
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import AuthContext from "../context/AuthContext";
 
 const Dashboard = () => {
-  const [user, setUser] = useState(null);
+  const { user, setUser, authToken, setAuthToken } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch user data after component mounts
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("jwt");
-        if (!token) {
-          console.error("No JWT token found in localStorage");
-          return;
-        }
-
         // JWT is valid, proceed with API call
         const axiosConfig = {
           withCredentials: true,
-          credentials: "include", // Set credentials to 'include'
+          credentials: "include",
         };
 
         const response = await axios.get(
           "http://localhost:8000/api/user",
-          axiosConfig
+          axiosConfig,
+          { withCredentials: true }
         );
 
         console.log(response.data);
-        setUser(response.data); // Assuming the user data is returned in the response
+        setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -61,7 +57,7 @@ const Dashboard = () => {
       <Navbar />
       <div className="flex flex-col items-center justify-center h-screen dark:bg-gray-950 text-gray-700 dark:text-gray-300">
         <h2 className="text-4xl md:text-5xl font-bold mb-6 mt-12 text-gray-700 dark:text-slate-200">
-          Welcome, {user ? user.name : "User"}!
+          Welcome, {user ? user.username : "User"}!
         </h2>
 
         {/* Logout button */}

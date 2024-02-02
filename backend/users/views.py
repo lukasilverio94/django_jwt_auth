@@ -49,6 +49,7 @@ class LoginView(APIView):
         # After import jwt and datetime, set payload:
         payload = {
             'id': user.id,
+            'username': user.name,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=3),
             'iat': datetime.datetime.utcnow()
         }

@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
 import axios from "axios";
 
 export const Login = () => {
-  const navigate = useNavigate();
+  const { authToken, setAuthToken, user, setUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -28,7 +30,9 @@ export const Login = () => {
         { withCredentials: true }
       );
       setFormData(response.data);
-      localStorage.setItem("jwt", response.data.jwt);
+      setUser(response.data.jwt);
+
+      console.log("Received JWT:", response.data.jwt);
       navigate("/dashboard");
     } catch (error) {
       if (error.response && error.response.data) {
