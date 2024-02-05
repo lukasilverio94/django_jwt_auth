@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -11,6 +12,16 @@ export const AuthProvider = ({ children }) => {
 
   const [authToken, setAuthToken] = useState(() => token || null);
   const [user, setUser] = useState(() => (token ? jwtDecode(token) : null));
+
+  useEffect(() => {
+    if (authToken) {
+      axios.defaults.headers.common["Authorization"] = "Bearer " + authToken;
+      localStorage.setItem("authToken", authToken);
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+      localStorage.removeItem("authToken");
+    }
+  }, [authToken]);
 
   const contextData = {
     authToken: authToken,

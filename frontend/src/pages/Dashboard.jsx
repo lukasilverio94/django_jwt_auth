@@ -1,5 +1,6 @@
 // Dashboard.jsx
 import React, { useContext, useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
@@ -8,32 +9,33 @@ import AuthContext from "../context/AuthContext";
 const Dashboard = () => {
   const { user, setUser, authToken, setAuthToken } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  const fetchUser = async () => {
+    try {
+      console.log("Token before fetchUser:", authToken);
+      const response = await axios.get("http://127.0.0.1:8000/api/user/", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+
+      console.log("Response data:", response.data);
+      console.log("Response status:", response.status);
+
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   useEffect(() => {
-    // Fetch user data after component mounts
-    const fetchUser = async () => {
-      try {
-        // JWT is valid, proceed with API call
-        const axiosConfig = {
-          withCredentials: true,
-          credentials: "include",
-        };
-
-        const response = await axios.get(
-          "http://localhost:8000/api/user",
-          axiosConfig,
-          { withCredentials: true }
-        );
-
-        console.log(response.data);
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
+    console.log("Token before fetchUser:", authToken);
     fetchUser();
-  }, []);
+    console.log("Token after fetchUser:", authToken);
+  }, [authToken]); // Removed 'user' from dependencies
 
   //   LOGOUT
   const handleLogout = async () => {

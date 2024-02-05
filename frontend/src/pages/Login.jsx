@@ -4,7 +4,7 @@ import AuthContext from "../context/AuthContext";
 import axios from "axios";
 
 export const Login = () => {
-  const { authToken, setAuthToken, user, setUser } = useContext(AuthContext);
+  const { setAuthToken, setUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,22 +24,39 @@ export const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/login/",
-        formData,
-        { withCredentials: true }
-      );
-      setFormData(response.data);
-      setUser(response.data.jwt);
+      const response = await fetch("http://127.0.0.1:8000/api/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      console.log("Received JWT:", response.data.jwt);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Login failed");
+      }
+
+      const responseData = await response.json();
+      console.log("Response Data:", responseData);
+
+      // Set the entire response data in the AuthContext, which includes the JWT
+      setAuthToken(responseData.jwt);
+      console.log("Token after setting:", responseData.jwt);
+
+      // Redirect to the dashboard
       navigate("/dashboard");
     } catch (error) {
-      if (error.response && error.response.data) {
-        setError({ message: "Login failed", details: error.response.data });
-      } else {
-        console.error("An unexpected error occurred:", error);
-      }
+      console.error("An unexpected error occurred:", error);
+
+      setError({
+        message: error.message || "Login failed",
+        details: error.details || null,
+      });
     }
   };
 

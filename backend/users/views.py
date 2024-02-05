@@ -2,6 +2,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from .serializers import UserSerializer
 from .models import User
 import jwt
@@ -11,6 +15,22 @@ import os
 
 load_dotenv()
 SECRET_JWT = os.environ.get('SECRET_JWT')
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['username'] = user.name
+        # ...
+
+        return token
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 #  REGISTER USER
 
@@ -49,7 +69,7 @@ class LoginView(APIView):
         # After import jwt and datetime, set payload:
         payload = {
             'id': user.id,
-            'username': user.name,
+            'user': user.name,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=3),
             'iat': datetime.datetime.utcnow()
         }
@@ -61,11 +81,11 @@ class LoginView(APIView):
         response = Response()
 
         response.set_cookie(key='jwt', value=token,
-                            httponly=True)
+                            httponly=True, samesite='Lax')
 
         # Allow credentials in cross-origin requests
         response["Access-Control-Allow-Credentials"] = "true"
-
+        print("Response: ", response)
         response.data = {
             'jwt': token
         }
@@ -77,22 +97,28 @@ class LoginView(APIView):
 
 
 class UserView(APIView):
-
     def get(self, request):
-        token = request.COOKIES.get('jwt')
-
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
         try:
-            payload = jwt.decode(token, SECRET_JWT, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+            token = request.COOKIES.get('jwt')
+            print("Received Token: ", token)
 
-        user = User.objects.filter(id=payload['id']).first()
-        print("User: ", user)
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+            if not token:
+                raise AuthenticationFailed('Unauthenticated! No token.')
+
+            try:
+                payload = jwt.decode(token, SECRET_JWT, algorithms=['HS256'])
+            except jwt.ExpiredSignatureError:
+                raise AuthenticationFailed('Unauthenticated! Token expired.')
+
+            user = User.objects.filter(id=payload['id']).first()
+            print("User: ", user)
+
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+
+        except AuthenticationFailed as e:
+            print(f"Authentication Failed: {str(e)}")
+            return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 # LOGOUT
