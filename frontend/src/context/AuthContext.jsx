@@ -16,12 +16,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (authToken) {
       axios.defaults.headers.common["Authorization"] = "Bearer " + authToken;
-      localStorage.setItem("authToken", authToken);
+      localStorage.setItem("jwt", authToken); // Corrected key
+      localStorage.setItem("user", JSON.stringify(user)); // Serialize user object
     } else {
       delete axios.defaults.headers.common["Authorization"];
-      localStorage.removeItem("authToken");
+      localStorage.removeItem("jwt");
     }
-  }, [authToken]);
+  }, [authToken, user]);
 
   const contextData = {
     authToken: authToken,

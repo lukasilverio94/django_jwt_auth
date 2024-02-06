@@ -70,7 +70,7 @@ class LoginView(APIView):
         payload = {
             'id': user.id,
             'user': user.name,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=3),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             'iat': datetime.datetime.utcnow()
         }
 
@@ -81,7 +81,7 @@ class LoginView(APIView):
         response = Response()
 
         response.set_cookie(key='jwt', value=token,
-                            httponly=True, samesite='Lax')
+                            httponly=True,)
 
         # Allow credentials in cross-origin requests
         response["Access-Control-Allow-Credentials"] = "true"

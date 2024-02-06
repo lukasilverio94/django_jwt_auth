@@ -55,7 +55,7 @@ export const Login = () => {
 
       setError({
         message: error.message || "Login failed",
-        details: error.details || null,
+        details: error.details || "login failed",
       });
     }
   };
